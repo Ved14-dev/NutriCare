@@ -1,0 +1,19 @@
+name: nutricare_mvp
+description: MVP for NutriCare - Offline-first nutrition companion
+version: 1.0.0
+environment:
+    sdk: ">=2.17.0 <3.0.0"
+
+dependencies:
+    flutter:
+        sdk: flutter
+    sqflite: ^2.3.0
+    path_provider: ^2.0.15
+    encrypt: ^5.0.1
+    firebase_core: ^2.24.2
+    cloud_firestore: ^4.13.0
+    firebase_auth: ^4.16.0
+    qr_flutter: ^4.1.0
+    tflite_flutter: ^0.10.0
+    speech_to_text: ^5.0.0
+    flutter_tts: ^3.8.5
