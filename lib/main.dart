@@ -10,6 +10,8 @@ void main() async {
 }
 
 class NutriCareApp extends StatelessWidget {
+    const NutriCareApp({Key? key}) : super(key: key);
+
     @override
     Widget build(BuildContext context) {
         return MaterialApp(
