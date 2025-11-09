@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../db/local_db.dart';
 import '../models/food_entry.dart';
+import '../widgets/app_scaffold.dart';
 
 class FoodLog extends StatefulWidget {
+    const FoodLog({super.key});
+
     @override
     _FoodLogState createState() => _FoodLogState();
 }
@@ -28,27 +32,39 @@ class _FoodLogState extends State<FoodLog> {
 
     @override
     Widget build(BuildContext context) {
-        return Scaffold(
-            appBar: AppBar(title: Text('My Food Log')),
-            body: Column(
+        return AppScaffold(
+            title: 'My Food Log',
+            child: Column(
                 children: [
                     Expanded(
-                        child: ListView.builder(
-                            itemCount: entries.length,
-                            itemBuilder: (ctx, i) => ListTile(
-                                leading: Icon(Icons.fastfood),
-                                title: Text(entries[i].name),
-                                subtitle: Text('${entries[i].calories} kcal'),
-                            ),
-                        ),
+                                    child: entries.isEmpty
+                                            ? Center(child: Text('No entries yet', style: GoogleFonts.inter()))
+                                            : ListView.builder(
+                                        padding: const EdgeInsets.all(12),
+                                        itemCount: entries.length,
+                                        itemBuilder: (ctx, i) => Card(
+                                                    margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                    elevation: 2,
+                                                    surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+                                                    child: ListTile(
+                                                                    leading: CircleAvatar(backgroundColor: Theme.of(context).colorScheme.secondaryContainer, child: Icon(Icons.fastfood, color: Theme.of(context).colorScheme.onSecondaryContainer, size: 20)),
+                                                        title: Text(entries[i].name, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                                                        subtitle: Text('${entries[i].calories} kcal', style: GoogleFonts.inter()),
+                                                    ),
+                                                ),
+                                    ),
                     ),
                     Padding(
-                        padding: EdgeInsets.all(16),
-                        child: ElevatedButton.icon(
-                            icon: Icon(Icons.add),
-                            label: Text('Add Mock Entry'),
-                            onPressed: _addEntry,
-                        ),
+                        padding: const EdgeInsets.all(16),
+                                    child: SizedBox(
+                                        width: double.infinity,
+                                        child: FilledButton.icon(
+                                            icon: const Icon(Icons.add, size: 20),
+                                            label: Text('Add Mock Entry', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 16)),
+                                            onPressed: _addEntry,
+                                        ),
+                                    ),
                     ),
                 ],
             ),

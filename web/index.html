@@ -20,6 +20,19 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
 
+  <!--
+    Allow popups opened from this page to access window.closed and related
+    opener APIs. Google Identity Services uses a popup flow which checks the
+    opener; without this header (or meta) some browsers will block that
+    check and log: "Cross-Origin-Opener-Policy policy would block the window.closed call.".
+    Setting the Cross-Origin-Opener-Policy to same-origin-allow-popups relaxes
+    the isolation enough for the popup flow to work while still keeping
+    reasonable cross-origin protections.
+    For production, it's preferable to set this as an HTTP response header
+    (e.g., in Firebase Hosting `headers`), but a meta tag works for local dev.
+  -->
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
+
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
