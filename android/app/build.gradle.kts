@@ -9,7 +9,9 @@ plugins {
 
 android {
     namespace = "com.example.nutricare_mvp"
-    compileSdk = flutter.compileSdkVersion
+    // Use explicit SDK levels to ensure compatibility with Firebase and modern Android emulators
+    // Device logs earlier referenced SDK 36 — use 36 to match modern emulators and Play services
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -26,10 +28,14 @@ android {
         applicationId = "com.example.nutricare_mvp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
+        // Set stable minimum/target SDKs for emulator testing and Firebase compatibility
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        // Match the compileSdk with targetSdk to avoid runtime warnings on modern devices/emulators
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Enable MultiDex in case dependencies require >64K methods on devices
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -43,4 +49,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation("androidx.multidex:multidex:2.0.1")
 }

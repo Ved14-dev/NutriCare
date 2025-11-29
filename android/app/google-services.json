@@ -12,7 +12,20 @@
           "package_name": "com.example.nutricare_mvp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "865994733499-m6foe1brtrioumfk2u93tgirltjv7823.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nutricare_mvp",
+            "certificate_hash": "6e007962bbf04df53f924320b66be181a072c713"
+          }
+        },
+        {
+          "client_id": "865994733499-nj1vhii96tlbj5tc8b5jl875fvu1dohk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCT7_elmiAXTTKKIfVhHer0jA9zHlCsHVo"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "865994733499-nj1vhii96tlbj5tc8b5jl875fvu1dohk.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "865994733499-3voo6gtut48di4jrbqrfut8ob5ejb5k7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.nutricareMvp"
+              }
+            }
+          ]
         }
       }
     }

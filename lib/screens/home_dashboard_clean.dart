@@ -176,7 +176,15 @@ class HomeDashboard extends StatelessWidget {
                       ],
                     )
                   else ...[
-                    leftCard(context),
+                    // Make the main greeting card scrollable internally when vertical space is tight
+                    LayoutBuilder(builder: (ctx, c) {
+                      return SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        child: leftCard(context),
+                        // shrinkWrap behaviour helps cards avoid expanding when parent constrains them small
+                        primary: false,
+                      );
+                    }),
                     const SizedBox(height: 12),
                     Text('Health Feed', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),

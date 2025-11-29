@@ -92,20 +92,21 @@ Alternatively, add the client ID to your generated lib/firebase_options.dart or 
     }
 
     // Native platforms (Android/iOS): use google_sign_in package
-    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) return null; // user cancelled
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null; // user cancelled
 
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-    final userCredential = await _auth.signInWithCredential(credential);
+      final userCredential = await _auth.signInWithCredential(credential);
     final user = userCredential.user;
     if (user == null) return null;
 
-    final docRef = _db.collection('users').doc(user.uid);
+      final docRef = _db.collection('users').doc(user.uid);
     final now = FieldValue.serverTimestamp();
 
     // If user doesn't exist, create with createdAt. Otherwise only update lastLogin.
@@ -122,12 +123,26 @@ Alternatively, add the client ID to your generated lib/firebase_options.dart or 
       await docRef.update({'lastLogin': now});
     }
 
-    return user;
+      return user;
+    } catch (e) {
+      // Don't crash the app on sign-in errors. Log and return null for graceful handling.
+      debugPrint('Native Google sign-in failed: $e');
+      return null;
+    }
   }
 
   static Future<void> signOut() async {
-    await GoogleSignIn().signOut();
-    await _auth.signOut();
+    try {
+      await GoogleSignIn().signOut();
+    } catch (e) {
+      debugPrint('GoogleSignIn.signOut() error: $e');
+    }
+
+    try {
+      await _auth.signOut();
+    } catch (e) {
+      debugPrint('FirebaseAuth.signOut() error: $e');
+    }
   }
 
   static User? get currentUser => _auth.currentUser;
