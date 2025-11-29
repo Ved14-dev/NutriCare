@@ -17,18 +17,20 @@ import 'firebase_options.dart' as firebase_options;
 
 
 void main() async {
-        WidgetsFlutterBinding.ensureInitialized();
-            try {
-                await Firebase.initializeApp(
-                    options: firebase_options.DefaultFirebaseOptions.currentPlatform,
-                );
-            } catch (e) {
-                // If firebase_options.dart is missing or initialization fails we still
-                // continue but show a toast so the developer knows to configure Firebase.
-                Fluttertoast.showToast(msg: 'Firebase initialization warning: $e');
-            }
+    WidgetsFlutterBinding.ensureInitialized();
+    try {
+        await Firebase.initializeApp(
+            options: firebase_options.DefaultFirebaseOptions.currentPlatform,
+        );
+    } catch (e) {
+        Fluttertoast.showToast(msg: 'Firebase initialization warning: $e');
+    }
 
-        runApp(const NutriCareApp());
+    // Initialize Gemini SDK globally
+    // Add import: import 'package:flutter_gemini/flutter_gemini.dart'; at the top if missing
+    // Gemini.init(apiKey: 'AIzaSyCBab2yHBBLn9flrI2hTfV29HNh7346cS4'); // Only needed if other screens use flutter_gemini
+
+    runApp(const NutriCareApp());
 }
 
 class NutriCareApp extends StatelessWidget {
@@ -57,7 +59,7 @@ class NutriCareApp extends StatelessWidget {
                                                                                                 final appTheme = ThemeData(
                                                                                                     useMaterial3: true,
                                                                                                     colorScheme: colorScheme,
-                                                                                                    scaffoldBackgroundColor: const Color(0xFFF7F9FC),
+                                                                                                    scaffoldBackgroundColor: const Color(0xFFF4F7F9),
                                                                                                     textTheme: textTheme,
                                                                                                     fontFamily: 'NotoSans',
                                                                                                     visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -80,8 +82,8 @@ class NutriCareApp extends StatelessWidget {
                                                                                                                                         ),
                                                                                                                                     ),
                                                                                                                                                                             cardTheme: CardThemeData(
-                                                                                                                                                                                color: colorScheme.surface,
-                                                                                                                                                                                elevation: 3,
+                                                                                                                                                                                color: Colors.white,
+                                                                                                                                                                                elevation: 4,
                                                                                                                                                                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                                                                                                                                                                 margin: const EdgeInsets.all(12),
                                                                                                                                                                             ),

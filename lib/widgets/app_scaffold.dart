@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// A shared scaffold used across the app that provides a top app bar with
 /// logo/title and a bottom navigation bar. Screens should pass their main
@@ -7,7 +9,8 @@ import 'package:google_fonts/google_fonts.dart';
 class AppScaffold extends StatelessWidget {
   final Widget child;
   final String title;
-  const AppScaffold({Key? key, required this.child, this.title = 'NutriCare'}) : super(key: key);
+  final Widget? floatingActionButton;
+  const AppScaffold({Key? key, required this.child, this.title = 'NutriCare', this.floatingActionButton}) : super(key: key);
 
   int _routeToIndex(String? route) {
     switch (route) {
@@ -44,6 +47,7 @@ class AppScaffold extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: floatingActionButton,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(92),
         child: AnimatedContainer(
@@ -91,10 +95,30 @@ class AppScaffold extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(2),
                       decoration: const BoxDecoration(shape: BoxShape.circle),
-                      child: CircleAvatar(
-                        radius: 22,
-                        backgroundColor: colorScheme.onPrimary,
-                        child: Text('A', style: GoogleFonts.poppins(color: colorScheme.primary, fontWeight: FontWeight.w700)),
+                      child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>?>(
+                        stream: FirebaseAuth.instance.currentUser == null
+                            ? const Stream.empty()
+                            : FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).snapshots(),
+                        builder: (context, snap) {
+                          String name = '';
+                          if (snap.hasData && snap.data != null && snap.data!.exists) {
+                            final data = snap.data!.data();
+                            name = (data?['name'] as String?) ?? '';
+                          }
+                          // If Firestore doesn't have the name, fall back to FirebaseAuth displayName or email
+                          if (name.isEmpty) {
+                            final u = FirebaseAuth.instance.currentUser;
+                            name = u?.displayName ?? u?.email ?? '';
+                          }
+
+                          final initial = (name.trim().isNotEmpty) ? name.trim()[0].toUpperCase() : 'U';
+
+                          return CircleAvatar(
+                            radius: 22,
+                            backgroundColor: colorScheme.onPrimary,
+                            child: Text(initial, style: GoogleFonts.poppins(color: colorScheme.primary, fontWeight: FontWeight.w700)),
+                          );
+                        },
                       ),
                     ),
                   ),
