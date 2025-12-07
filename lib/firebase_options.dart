@@ -52,8 +52,12 @@ class DefaultFirebaseOptions {
     messagingSenderId: '865994733499',
     projectId: 'nutricare-1fb2c',
     authDomain: 'nutricare-1fb2c.firebaseapp.com',
-    storageBucket: 'nutricare-1fb2c.firebasestorage.app',
+    storageBucket: 'nutricare-1fb2c.appspot.com',
     measurementId: 'G-X8JBEZ0917',
+    // Add your Google Sign-In Web client ID here:
+    // See Firebase Console > Authentication > Google > Web client ID
+    // Example:
+    // clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(

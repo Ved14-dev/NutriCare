@@ -9,6 +9,11 @@ Offline-first calorie tracking app for everyday nutrition awareness.
 // flutter pub get
 // flutter run -d emulator-5554
 *******************************************************************************************
+// flutter clean
+flutter pub get
+flutter build apk --debug
+adb install -r build/app/outputs/flutter-apk/app-debug.apk
+*******************************************************************************************
 
 How to Run:
 1. Install Flutter SDK.
@@ -69,3 +74,17 @@ Troubleshooting tips:
 
 - If Gradle/Kotlin incremental compile errors show paths on different drives ("different roots") — run the helper script above to clear caches and disable problematic incremental caches automatically.
 - If Google Sign-In fails, add SHA-1 and SHA-256 of your debug keystore to Firebase Console and re-download `google-services.json`.
+
+# Gemini API Key Setup
+
+To enable the Gemini AI chatbot, you must create a file at `lib/secrets.dart` with your API key:
+
+```
+class AppSecrets {
+  static const String geminiApiKey = "YOUR_GEMINI_API_KEY";
+}
+```
+
+- This file is ignored by git and will not be committed.
+- The app will always have the key bundled and work every time you open the APK or run the app.
+- If you change the key, rebuild the app.

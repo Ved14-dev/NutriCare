@@ -1,13 +1,13 @@
-name: nutricare_mvp
+name: NutriCare
 description: MVP for NutriCare - Offline-first nutrition companion
 version: 1.0.0
+
 environment:
   sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  google_fonts: ^5.0.0
   sqflite: ^2.3.0
   path_provider: ^2.0.15
   encrypt: ^5.0.1
@@ -24,15 +24,31 @@ dependencies:
   speech_to_text: ^7.3.0
   flutter_tts: ^4.2.3
   font_awesome_flutter: ^10.12.0
+  flutter_local_notifications: ^19.5.0
   google_generative_ai: ^0.4.7
+  image_picker: ^0.8.7+4
+  firebase_storage: ^13.0.2
+  http: any
+  workmanager: ^0.9.0+3
+  get_it: ^9.1.1
+  google_fonts: ^6.3.3
+  image: ^4.1.3
+  lottie: ^2.7.0
+  device_info_plus: ^12.3.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/animations/water_wave.json
+    - assets/fonts/
+    - assets/food101_labels.txt
+    - assets/food101.tflite
   fonts:
     - family: NotoSans
       fonts:
@@ -42,6 +58,14 @@ flutter:
     - family: NotoColorEmoji
       fonts:
         - asset: assets/fonts/NotoColorEmoji.ttf
-  assets:
-    - assets/fonts/
+    - family: NotoSerif
+      fonts:
+        - asset: assets/fonts/NotoSerif-Regular.ttf
+        - asset: assets/fonts/NotoSerif-Bold.ttf
+          weight: 700
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "D:/WhatsApp Image 2025-12-05 at 10.45.47 PM.png"
 

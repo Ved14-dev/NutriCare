@@ -1,0 +1,15 @@
+{
+  "collection": "health_recommendations",
+  "fields": {
+    "id": "string (auto or uuid)",
+    "user_id": "string",
+    "type": "string (hydration, nutrition, activity, etc)",
+    "message": "string",
+    "created_at": "string (ISO8601 UTC)"
+  },
+  "indexes": [
+    { "field": "user_id", "order": "asc" },
+    { "field": "created_at", "order": "desc" }
+  ],
+  "description": "Stores personalized health recommendations for each user."
+}

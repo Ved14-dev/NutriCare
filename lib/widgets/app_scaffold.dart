@@ -18,8 +18,12 @@ class AppScaffold extends StatelessWidget {
         return 1;
       case '/log':
         return 2;
-      case '/profile':
+      case '/hydration':
         return 3;
+      case '/profile':
+        return 4;
+      case '/plans':
+        return 5;
       default:
         return 0;
     }
@@ -32,7 +36,11 @@ class AppScaffold extends StatelessWidget {
       case 2:
         return '/log';
       case 3:
+        return '/hydration';
+      case 4:
         return '/profile';
+      case 5:
+        return '/plans';
       default:
         return '/dashboard';
     }
@@ -40,11 +48,9 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final currentRoute = ModalRoute.of(context)?.settings.name;
     final selectedIndex = _routeToIndex(currentRoute);
-
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       floatingActionButton: floatingActionButton,
@@ -58,26 +64,19 @@ class AppScaffold extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            boxShadow: [BoxShadow(color: Theme.of(context).shadowColor.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 4))],
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).shadowColor.withOpacity(0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
                 children: [
-                  Hero(
-                    tag: 'app-logo',
-                    child: Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: colorScheme.onPrimary.withOpacity(0.16),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(Icons.local_dining, color: colorScheme.onPrimary),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,14 +104,11 @@ class AppScaffold extends StatelessWidget {
                             final data = snap.data!.data();
                             name = (data?['name'] as String?) ?? '';
                           }
-                          // If Firestore doesn't have the name, fall back to FirebaseAuth displayName or email
                           if (name.isEmpty) {
                             final u = FirebaseAuth.instance.currentUser;
                             name = u?.displayName ?? u?.email ?? '';
                           }
-
                           final initial = (name.trim().isNotEmpty) ? name.trim()[0].toUpperCase() : 'U';
-
                           return CircleAvatar(
                             radius: 22,
                             backgroundColor: colorScheme.onPrimary,
@@ -131,32 +127,46 @@ class AppScaffold extends StatelessWidget {
       body: SafeArea(child: child),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-  decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, boxShadow: [BoxShadow(color: Theme.of(context).shadowColor.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2))]),
-        child: LayoutBuilder(builder: (context, constraints) {
-          // If narrow, wrap icons to avoid overflow; otherwise show them in a row.
-          if (constraints.maxWidth < 420) {
-            return Wrap(
-              alignment: WrapAlignment.spaceEvenly,
-              spacing: 8,
-              runSpacing: 6,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).shadowColor.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 520) {
+              return Wrap(
+                alignment: WrapAlignment.spaceEvenly,
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  _NavItem(icon: Icons.dashboard, label: 'Dashboard', index: 0, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                  _NavItem(icon: Icons.chat_bubble, label: 'Chat', index: 1, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                  _NavItem(icon: Icons.restaurant, label: 'Food Log', index: 2, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                  _NavItem(icon: Icons.local_drink, label: 'Hydration', index: 3, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                  _NavItem(icon: Icons.person, label: 'Profile', index: 4, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                  _NavItem(icon: Icons.star, label: 'Plans', index: 5, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                ],
+              );
+            }
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _NavItem(icon: Icons.home, label: 'Home', index: 0, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                _NavItem(icon: Icons.dashboard, label: 'Dashboard', index: 0, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
                 _NavItem(icon: Icons.chat_bubble, label: 'Chat', index: 1, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
-                _NavItem(icon: Icons.book, label: 'Log', index: 2, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
-                _NavItem(icon: Icons.person, label: 'Profile', index: 3, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                _NavItem(icon: Icons.restaurant, label: 'Food Log', index: 2, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                _NavItem(icon: Icons.local_drink, label: 'Hydration', index: 3, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                _NavItem(icon: Icons.person, label: 'Profile', index: 4, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
+                _NavItem(icon: Icons.star, label: 'Plans', index: 5, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
               ],
             );
-          }
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(icon: Icons.home, label: 'Home', index: 0, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
-              _NavItem(icon: Icons.chat_bubble, label: 'Chat', index: 1, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
-              _NavItem(icon: Icons.book, label: 'Log', index: 2, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
-              _NavItem(icon: Icons.person, label: 'Profile', index: 3, selectedIndex: selectedIndex, onTap: (i) => _onTap(context, i)),
-            ],
-          );
-        }),
+          },
+        ),
       ),
     );
   }
@@ -164,10 +174,10 @@ class AppScaffold extends StatelessWidget {
   void _onTap(BuildContext context, int index) {
     final route = _indexToRoute(index);
     if (ModalRoute.of(context)?.settings.name != route) {
-      // Use replacement to avoid stacking many scaffold shells
       Navigator.pushReplacementNamed(context, route);
     }
   }
+
 }
 
 class _NavItem extends StatelessWidget {
@@ -181,9 +191,8 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool active = index == selectedIndex;
-    // Use IconButton to guarantee proper hit target size and accessibility.
     final colorScheme = Theme.of(context).colorScheme;
-      return AnimatedContainer(
+    return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(

@@ -1,0 +1,13 @@
+{
+  "collection": "hydration_logs",
+  "fields": {
+    "timestamp": "string (ISO8601 UTC)",
+    "amount_ml": "int",
+    "source": "string (e.g. 'background_worker', 'user')"
+  },
+  "indexes": [
+    { "field": "timestamp", "order": "desc" },
+    { "field": "source", "order": "asc" }
+  ],
+  "description": "Logs each hydration event for analytics, streaks, and chatbot consumption."
+}

@@ -1,217 +1,203 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:math' as math;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'qr_code_screen.dart';
 import '../backend/firestore_service.dart';
-import '../widgets/app_scaffold.dart';
 import '../backend/auth_service.dart';
+import '../widgets/app_scaffold.dart';
 
-class HomeDashboard extends StatelessWidget {
+class HomeDashboard extends StatefulWidget {
   const HomeDashboard({super.key});
+
+  @override
+  State<HomeDashboard> createState() => _HomeDashboardState();
+}
+
+class _HomeDashboardState extends State<HomeDashboard> {
+  // Navigation handled by AppScaffold
+
+  Widget leftCard(BuildContext ctx) {
+    final colorScheme = Theme.of(ctx).colorScheme;
+    final user = FirebaseAuth.instance.currentUser;
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 6,
+      margin: const EdgeInsets.only(right: 12, bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(18.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user?.uid)
+                  .snapshots(),
+              builder: (context, snap) {
+                String name = 'there';
+                if (snap.hasData && snap.data!.exists) {
+                  final data = snap.data!.data() as Map<String, dynamic>?;
+                  if (data != null && (data['name'] as String?)?.isNotEmpty == true) {
+                    name = data['name'] as String;
+                  }
+                } else if (user?.displayName != null) {
+                  name = user!.displayName!;
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Welcome, $name', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 8),
+                    Text('Here is your daily summary', style: GoogleFonts.inter(color: Theme.of(context).textTheme.bodyMedium?.color)),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            StreamBuilder<QuerySnapshot>(
+              stream: user == null
+                  ? null
+                  : FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(user.uid)
+                      .collection('food_logs')
+                      .where('date', isEqualTo: DateTime.now().toIso8601String().substring(0, 10))
+                      .snapshots(),
+              builder: (context, snap) {
+                int totalCalories = 0;
+                int meals = 0;
+                if (snap.hasData && snap.data!.docs.isNotEmpty) {
+                  meals = snap.data!.docs.length;
+                  for (var doc in snap.data!.docs) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    totalCalories += int.tryParse(data['calories'].toString()) ?? 0;
+                  }
+                }
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _SummaryCard(title: 'Calories', value: '${totalCalories} kcal', color: colorScheme.secondaryContainer),
+                    _SummaryCard(title: 'Meals', value: '$meals', color: colorScheme.tertiaryContainer),
+                    _SummaryCard(title: 'Goal', value: 'Stay healthy', color: colorScheme.primaryContainer),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                _ActionButton(icon: Icons.restaurant_menu, label: 'My Food Log', onPressed: () => Navigator.pushNamed(ctx, '/log')),
+                _ActionButton(icon: Icons.chat_bubble, label: 'Chat Bot', onPressed: () => Navigator.pushNamed(ctx, '/chat')),
+                _ActionButton(icon: Icons.qr_code, label: 'Nutritionist QR', onPressed: () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => const QRCodeScreen()))),
+                _ActionButton(icon: Icons.upload_file, label: 'Upload Data', onPressed: () async {
+                  await FirestoreService.sendMockFoodData();
+                  if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Food data uploaded!')));
+                }),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final ok = await showDialog<bool>(
+                        context: ctx,
+                        builder: (ctx2) => AlertDialog(
+                              title: const Text('Sign Out'),
+                              content: const Text('Are you sure you want to sign out?'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.of(ctx2).pop(false), child: const Text('Cancel')),
+                                FilledButton(onPressed: () => Navigator.of(ctx2).pop(true), child: const Text('Sign Out')),
+                              ],
+                            ));
+                    if (ok == true) {
+                      await FirebaseAuth.instance.signOut();
+                      try {
+                        await AuthService.signOut();
+                      } catch (_) {}
+                      if (ctx.mounted) Navigator.pushReplacementNamed(ctx, '/login');
+                    }
+                  },
+                  icon: const Icon(Icons.logout),
+                  label: Text('Sign out', style: GoogleFonts.inter()),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
     final bool isLarge = width > 800;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    Widget leftCard(BuildContext ctx) {
-      return Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 6,
-        margin: const EdgeInsets.only(right: 12, bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(18.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Greeting (reads from Firestore users/{uid})
-              StreamBuilder<DocumentSnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(FirebaseAuth.instance.currentUser?.uid)
-                    .snapshots(),
-                builder: (context, snap) {
-                  String name = 'there';
-                  if (snap.hasData && snap.data!.exists) {
-                    final data = snap.data!.data() as Map<String, dynamic>?;
-                    if (data != null && (data['name'] as String?)?.isNotEmpty == true) {
-                      name = data['name'] as String;
-                    }
-                  } else if (FirebaseAuth.instance.currentUser?.displayName != null) {
-                    name = FirebaseAuth.instance.currentUser!.displayName!;
-                  }
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Welcome, $name', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 8),
-                      Text('Here is your daily summary', style: GoogleFonts.inter(color: Theme.of(context).textTheme.bodyMedium?.color)),
-                    ],
-                  );
-                },
-              ),
-
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _SummaryCard(title: 'Calories', value: '1,450 kcal', color: colorScheme.secondaryContainer),
-                  _SummaryCard(title: 'Meals', value: '3', color: colorScheme.tertiaryContainer),
-                  _SummaryCard(title: 'Goal', value: 'Lose 0.2 kg', color: colorScheme.primaryContainer),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 8,
-                children: [
-                  _ActionButton(icon: Icons.restaurant_menu, label: 'My Food Log', onPressed: () => Navigator.pushNamed(context, '/log')),
-                  _ActionButton(icon: Icons.chat_bubble, label: 'Chat Bot', onPressed: () => Navigator.pushNamed(context, '/chat')),
-                  _ActionButton(icon: Icons.qr_code, label: 'Nutritionist QR', onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRCodeScreen()))),
-                  _ActionButton(icon: Icons.upload_file, label: 'Upload Data', onPressed: () async {
-                    await FirestoreService.sendMockFoodData();
-                    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Food data uploaded!')));
-                  }),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      // Ask for confirmation before signing out
-                      final ok = await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                                title: const Text('Sign Out'),
-                                content: const Text('Are you sure you want to sign out?'),
-                                actions: [
-                                  TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
-                                  FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Sign Out')),
-                                ],
-                              ));
-
-                      if (ok == true) {
-                        // Sign out Firebase first to avoid web Google Sign-In client-id assertion
-                        await FirebaseAuth.instance.signOut();
-                        try {
-                          await AuthService.signOut();
-                        } catch (_) {
-                          // ignore auxiliary sign-out failures (e.g., missing web client id)
-                        }
-                        if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
-                      }
-                    },
-                    icon: const Icon(Icons.logout),
-                    label: Text('Sign out', style: GoogleFonts.inter()),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Small curated tips list (will choose a few at random each build)
-    final List<Map<String, String>> tips = [
-      {'title': 'Hydrate regularly', 'subtitle': 'Drinking water before meals helps reduce overeating'},
-      {'title': 'Include protein', 'subtitle': 'Add a protein source to every meal to stay fuller longer'},
-      {'title': 'Choose whole grains', 'subtitle': 'Swap refined carbs for whole grains for better energy levels'},
-      {'title': 'Mindful eating', 'subtitle': 'Eat without distractions and chew slowly to feel satisfied'},
-      {'title': 'Plan snacks', 'subtitle': 'Keep healthy snacks ready to avoid impulse choices'},
-    ];
-
-    Widget rightFeed(BuildContext ctx) {
-      // pick up to 3 random tips to show
-      final rnd = math.Random();
-      final selected = <Map<String, String>>[];
-      final pool = List<Map<String, String>>.from(tips);
-      final picks = math.min(3, pool.length);
-      for (var i = 0; i < picks; i++) {
-        final idx = rnd.nextInt(pool.length);
-        selected.add(pool.removeAt(idx));
-      }
-      return Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 6,
-        surfaceTintColor: colorScheme.surfaceTint,
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Health Feed', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 220,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: selected.map((t) => _FeedCard(title: t['title'] ?? '', subtitle: t['subtitle'] ?? '', image: null)).toList(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     return AppScaffold(
       title: 'NutriCare',
       child: LayoutBuilder(builder: (context, constraints) {
         return SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (isLarge)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 2, child: leftCard(context)),
-                        const SizedBox(width: 12),
-                        Expanded(flex: 3, child: rightFeed(context)),
-                      ],
-                    )
-                  else ...[
-                    // Make the main greeting card scrollable internally when vertical space is tight
-                    LayoutBuilder(builder: (ctx, c) {
-                      return SingleChildScrollView(
-                        physics: const ClampingScrollPhysics(),
-                        child: leftCard(context),
-                        // shrinkWrap behaviour helps cards avoid expanding when parent constrains them small
-                        primary: false,
-                      );
-                    }),
-                    const SizedBox(height: 12),
-                    Text('Health Feed', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 160,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: () {
-                          // Recompute a small random sample for compact view
-                          final rnd = math.Random();
-                          final pool = List<Map<String, String>>.from(tips);
-                          final picks = math.min(3, pool.length);
-                          final selectedSmall = <Map<String, String>>[];
-                          for (var i = 0; i < picks; i++) {
-                            selectedSmall.add(pool.removeAt(rnd.nextInt(pool.length)));
-                          }
-                          return selectedSmall.map((t) => _FeedCard(title: t['title'] ?? '', subtitle: t['subtitle'] ?? '', image: null)).toList();
-                        }(),
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 12),
-                ],
-              ),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              leftCard(context),
+              const SizedBox(height: 12),
+              DynamicHealthSummary(),
+              const SizedBox(height: 12),
+            ],
+          ),
         );
       }),
+    );
+  }
+}
+
+// Widget to show dynamic health summary for every user
+class DynamicHealthSummary extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const SizedBox();
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+      builder: (context, snap) {
+        if (!snap.hasData || !snap.data!.exists) {
+          return const Card(child: Padding(padding: EdgeInsets.all(16), child: Text('No health summary available.')));
+        }
+        final data = snap.data!.data() as Map<String, dynamic>?;
+        if (data == null) {
+          return const Card(child: Padding(padding: EdgeInsets.all(16), child: Text('No health summary available.')));
+        }
+        final age = data['age'] ?? '-';
+        final height = data['height'] ?? '-';
+        final weight = data['weight'] ?? '-';
+        final bmi = data['bmi'] ?? '-';
+        final bmiCategory = data['bmi_category'] ?? '';
+        final goal = data['goal'] ?? '-';
+        final activity = data['activity_level'] ?? '-';
+        return Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 4,
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(18.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Your Health Summary', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 10),
+                Text('Age: $age'),
+                Text('Height: $height cm'),
+                Text('Weight: $weight kg'),
+                Text('BMI: $bmi ${bmiCategory.isNotEmpty ? '($bmiCategory)' : ''}'),
+                Text('Goal: $goal'),
+                Text('Activity Level: $activity'),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

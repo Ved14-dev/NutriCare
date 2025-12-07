@@ -2,12 +2,20 @@
     <!-- Required permissions for Android networking and proper Firebase operation -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:usesCleartextTraffic="true"
         android:enableOnBackInvokedCallback="true"
         android:label="nutricare_mvp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- Gemini API Key for Google Generative AI -->
+        <meta-data
+            android:name="com.google.android.ai.api_key"
+            android:value="AIzaSyBHyo_Uqua-bfOdlYVhDyk0kFFwY5VBMv4" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -35,6 +43,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- WorkManager: Required for background tasks -->
+        <service
+            android:name="androidx.work.impl.background.firebase.FirebaseJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false" />
+        <receiver
+            android:name="dev.fluttercommunity.plus.workmanager.WorkManagerBroadcastReceiver"
+            android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
@@ -45,6 +61,13 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.PICK" />
+            <data android:mimeType="image/*" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
         </intent>
     </queries>
 </manifest>

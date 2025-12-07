@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../widgets/app_scaffold.dart';
+import '../secrets.dart';
 
 class ChatPage extends StatefulWidget {
     const ChatPage({super.key});
@@ -25,7 +26,7 @@ class _SuggestionChip extends StatelessWidget {
     Widget build(BuildContext context) {
         return ActionChip(
             label: Text(label, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
-            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             onPressed: () => onTap(label),
         );
     }
@@ -56,7 +57,7 @@ class BotBubble extends StatelessWidget {
     final String text;
     const BotBubble({Key? key, required this.text}) : super(key: key);
 
-    BotBubble.typing({Key? key}) : text = '...';
+    const BotBubble.typing({super.key}) : text = '...';
 
     @override
     Widget build(BuildContext context) {
@@ -67,7 +68,7 @@ class BotBubble extends StatelessWidget {
             child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
-                    color: cs.surfaceVariant,
+                    color: cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(14),
                 ),
                 child: isTyping
@@ -297,10 +298,10 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                     final qty = data['quantity']?.toString() ?? '1';
                     final day = (data['day'] as String?) ?? '';
                     final date = (data['date'] as String?) ?? '';
-                    return '- $name | ${cal} cal | qty ${qty} | $day ($date)';
+                    return '- $name | $cal cal | qty $qty | $day ($date)';
                 }).join('\n');
 
-                prompt += '\n\nThe user has the following recent food entries:\n${entries}';
+                prompt += '\n\nThe user has the following recent food entries:\n$entries';
             }
         } catch (e) {
             debugPrint('fetch food logs error: $e');
@@ -328,12 +329,9 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     // Gemini streaming adapter using google_generative_ai
     // Returns a StreamSubscription that can be cancelled.
     StreamSubscription<dynamic> _startStreaming(String prompt, DocumentReference<Map<String, dynamic>> botDocRef) {
-        
-
         // Use the Generative API to get a full response then stream it
         // locally as chunks so the UI shows a streaming typing effect.
-        const apiKey = 'AIzaSyCBab2yHBBLn9flrI2hTfV29HNh7346cS4';
-        final model = GenerativeModel(model: 'gemini-flash-latest', apiKey: apiKey);
+        final model = GenerativeModel(model: 'gemini-flash-latest', apiKey: AppSecrets.geminiApiKey);
 
         // Use a controller to expose the simulated streaming subscription
         final controller = StreamController<String>();
@@ -343,12 +341,12 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
             final full = response.text ?? '';
             if (full.isEmpty) {
                 // nothing to stream
-                controller.close();
+                await controller.close();
                 return;
             }
 
             // break into readable chunks for a streaming effect
-            final step = 18; // chars per chunk
+            const step = 18; // chars per chunk
             final chunks = <String>[];
             for (var i = 0; i < full.length; i += step) {
                 final end = (i + step) < full.length ? i + step : full.length;
@@ -426,7 +424,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
                             stream: _chatCollection(user.uid).orderBy('timestamp', descending: false).snapshots(),
                             builder: (context, snapshot) {
                                 if (snapshot.hasError) {
-                                    return Center(child: Text('Error loading messages'));
+                                    return const Center(child: Text('Error loading messages'));
                                 }
 
                                 if (!snapshot.hasData) {
