@@ -15,7 +15,7 @@
         <!-- Gemini API Key for Google Generative AI -->
         <meta-data
             android:name="com.google.android.ai.api_key"
-            android:value="AIzaSyBHyo_Uqua-bfOdlYVhDyk0kFFwY5VBMv4" />
+            android:value="" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
